@@ -1,83 +1,43 @@
-import cv2
-import torch
-from ultralytics import YOLO
+Fruit Quality Inspection using YOLOv8
+ This project is a real-time fruit classification and quality detection system using two YOLOv8 models. The first model classifies the type of fruit (e.g., apple, banana, mango, orange), while the second model detects the condition of the fruit-whether it is healthy, rotten, or ripe. The system uses a webcam to capture live video frames, processes each frame using the classification model to identify the fruit type, and then uses the detection model to evaluate its quality. Built using Python, OpenCV, PyTorch, and the Ultralytics YOLOv8 framework, this project is ideal for smart agriculture, food industry automation, or educational research in AI-based computer vision applications.
+ Features:- Real-time fruit classification (e.g., Apple, Banana, Mango, Orange)- Detects fruit condition: Healthy, Rotten, or Ripe- Live video processing with webcam using OpenCV- Dual YOLOv8 model setup (classification + detection)- Clear overlay display of results on video stream
+ 
+ Project Structure:
+ fruit-quality-inspection/
+ models/
+ classification_model.pt        # YOLOv8 classification model
+ detection_model.pt             # YOLOv8 detection model
+ src/
+ main.py                        # Main application script
+ requirements.txt                   # Project dependencies
+ README.md                          # Project documentation
+ .gitignore                         # Ignored files
 
-# Load the models
-classification_model = YOLO("models/classification_model.pt")
-detection_model = YOLO("models/detection_model.pt")
-# Classify the fruit type
-def classify_fruit(image):
-    result = classification_model(image)
-    
-    class_id = torch.argmax(result[0].probs.data)
-    class_label = classification_model.names[class_id.item()]
-    
-    confidence = result[0].probs.data[class_id].item()
-    
-    print(f"[INFO] Classified Fruit: {class_label} (Confidence: {confidence:.2f})")
-    
-    return class_label
+ Setup Instructions:
+ 1. Clone the Repository
+   git clone https://github.com/your-username/fruit-quality-inspection.git
+   cd fruit-quality-inspection
+ 
+ 2. Install Dependencies
+   pip install -r requirements.txt
 
-# Detect if the fruit is rotten or healthy
-def detect_rotten_or_healthy(image, class_label):
-    result = detection_model(image)
-    
-    print(f"[INFO] Detection Model Result: {result}")
+ 3. Add Your YOLOv8 Model Files
+   Place the following model files in the models/ folder:
+   - classification_model.pt
+   - detection_model.pt
 
-    # Debugging: Check detection model output, print all boxes and classes
-    if result[0].boxes is not None and len(result[0].boxes) > 0:
-        print(f"[DEBUG] Detection model found {len(result[0].boxes)} boxes.")
-        for box in result[0].boxes:
-            cls = int(box.cls)
-            confidence = box.conf.item()
-            print(f"[DETECTION] Detected Class: {cls}, Confidence: {confidence:.2f}")  # For debugging
-            
-            # Here we need to be sure the class_label matches the fruit
-            # You can check class_label.lower() == "banana" as an example
-            print(f"[DEBUG] Matching classified label '{class_label.lower()}' with detection class {cls}...")
+ 4. Run the Application
+   python src/main.py
+   Press q to quit the video stream.
 
-            # You can map cls (0, 1, etc.) to actual labels for easier debugging
-            if class_label.lower() in ["banana", "apple", "mango", "orange"]:  # Add other fruits as needed
-                if confidence > 0.5:  # Confidence threshold
-                    if cls == 0:  # Assuming 0 = rotten
-                        return "rotten"
-                    elif cls == 1:  # Assuming 1 = healthy
-                        return "healthy"
-    else:
-        print(f"[DEBUG] No boxes detected in the frame for {class_label}")
-
-    # Default to unknown if no valid detection
-    return "Ripe"
-
-# Open the video stream (camera)
-cap = cv2.VideoCapture(0)
-
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
-
-    # Step 1: Classify the fruit type
-    class_label = classify_fruit(frame)
-    
-    # Step 2: Detect the fruit quality (rotten or healthy)
-    status = detect_rotten_or_healthy(frame, class_label)
-    
-    # Terminal output for detection
-    print(f"[INFO] Fruit Quality: {status}")
-    print("-" * 50)
-    
-    # Display classification and detection results on the frame
-    cv2.putText(frame, f"Fruit: {class_label}", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-    cv2.putText(frame, f"Quality: {status}", (10, 80), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-
-    # Show the frame with the results
-    cv2.imshow("Classification and Detection", frame)
-
-    # Exit condition (press 'q' to quit the loop)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-# Release the camera and close windows
-cap.release()
-cv2.destroyAllWindows()
+ How It Works:
+ 1. The system captures each frame from the webcam.
+ 2. The classification model identifies the fruit type.
+ 3. The detection model analyzes its quality: rotten, healthy, or ripe.
+ 4. Results are displayed in real-time on the video stream and terminal.
+ Dependencies:
+ Install the required Python packages:
+   pip install ultralytics torch opencv-python
+Or install using the provided requirements.txt:
+   pip install -r requirements.txt
+ Models Used:- Classification Model: YOLOv8 custom-trained model to classify fruit types.- Detection Model: YOLOv8 object detection model to detect fruit quality (rotten or healthy).
